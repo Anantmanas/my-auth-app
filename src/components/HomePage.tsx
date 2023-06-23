@@ -1,50 +1,57 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
-import {
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material';
+import { CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Avatar, TablePagination } from '@mui/material';
 
 interface Passenger {
   _id: string;
   name: string;
+  trips: number;
   airline: {
+    _id: string;
+    id: number;
     name: string;
-  };
+    country: string;
+    logo: string;
+    slogan: string;
+    head_quaters: string;
+    website: string;
+    established: string;
+  }[];
 }
 
 const LazyLoadingPage: React.FC = () => {
   const [data, setData] = useState<Passenger[]>([]);
+  const [airlineData, setAirlineData] = useState<Passenger['airline'][0][]>([]);
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(0);
-  const [pageSize, setPageSize] = useState(100);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=${pageSize}`);
-        const newData: Passenger[] = response.data.data;
-        console.log(newData)
-        setData((prevData) => [...prevData, ...newData]);
-        setPageNumber((prevPageNumber) => prevPageNumber + 1);
-        setLoading(false);
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
-      }
-    };
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=${rowsPerPage}`);
+      const json = await response.json();
+      const newData: Passenger[] = json.data;
+  
+      const updatedData = newData.map((passenger) => {
+        const airlineData = passenger.airline[0];
+        return {
+          ...passenger,
+          airline: airlineData,
+        };
+      });
+  
+      setData((prevData: Passenger[]) => [...prevData, ...updatedData] as Passenger[]);
 
+      setLoading(false);
+      setAirlineData((prevAirlineData) => [...prevAirlineData, ...updatedData.map((item) => item.airline)]);
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
     const observerOptions: IntersectionObserverInit = {
       root: null,
       rootMargin: '0px',
@@ -71,7 +78,20 @@ const LazyLoadingPage: React.FC = () => {
         observer.unobserve(currentContainerRef);
       }
     };
-  }, [pageNumber, pageSize]);
+  }, [pageNumber]);
+
+  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPageNumber(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPageNumber(0);
+  };
+
+  const startIndex = pageNumber * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const displayedData = data.slice(startIndex, endIndex);
 
   return (
     <div>
@@ -79,43 +99,46 @@ const LazyLoadingPage: React.FC = () => {
         Lazy Loading Page
       </Typography>
 
-      <TableContainer>
+      <TableContainer ref={containerRef}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Airline</TableCell>
+              <TableCell>Serial Number</TableCell>
+              <TableCell>Passenger Details</TableCell>
+              <TableCell>Airline Details</TableCell>
+              <TableCell>Airline Logo</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item) => (
+            {displayedData.map((item, index) => (
               <TableRow key={item._id}>
+                <TableCell>{startIndex + index + 1}</TableCell>
                 <TableCell>{item.name}</TableCell>
-                <TableCell>{item.airline.name}</TableCell>
+                <TableCell>{airlineData[index]?.name}</TableCell>
+                <TableCell>
+                  <Avatar alt={airlineData[index]?.name} src={airlineData[index]?.logo} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
+      <TablePagination
+        component="div"
+        rowsPerPageOptions={[10, 20, 30]}
+        count={data.length}
+        rowsPerPage={rowsPerPage}
+        page={pageNumber}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
           <CircularProgress />
         </div>
       )}
-
-      <Typography variant="h6" align="center" gutterBottom>
-        Ordered List
-      </Typography>
-
-      {/* <List ref={containerRef}>
-        {data.map((item) => (
-          <ListItem key={item._id}>
-            <ListItemText primary={item.name} secondary={item.airline.name} />
-          </ListItem>
-        ))}
-      </List> */}
-
     </div>
   );
 };

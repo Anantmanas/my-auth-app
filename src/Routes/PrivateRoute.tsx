@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Route, useNavigate, Navigate, Routes } from 'react-router-dom';
-import { getAuth, onAuthStateChanged, User } from '@firebase/auth';
+import { Route, Navigate, Outlet } from 'react-router-dom';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
-export interface IAuthRouteProps {
-  children: React.ReactNode;
-}
 
-const AuthRoute: React.FC<IAuthRouteProps> = (props) => {
-  const { children, ...rest } = props;
+const PrivateRoute: React.FC = () => {
   const auth = getAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -19,18 +14,34 @@ const AuthRoute: React.FC<IAuthRouteProps> = (props) => {
         setUser(user);
         setLoading(false);
       } else {
-        navigate('/');
+        setUser(null);
+        setLoading(false);
       }
     });
 
     return () => unsubscribe();
   }, [auth]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
-  if (!user) return <Navigate to="/" />;
+  if(user){
+    return <Outlet/>
+  }else{
+    return <Navigate to="/" />;
+  }
 
-  return <Routes><Route {...rest}>{children}</Route></Routes>;
+  // if (!user) {
+  //   return <Navigate to="/" />;
+  // }
+
+  // return (
+  //   <Route>
+  //     <Outlet />
+  //   </Route>
+  // );
 };
 
-export default AuthRoute;
+export default PrivateRoute;
+

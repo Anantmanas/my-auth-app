@@ -1,8 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React from 'react';
 import { auth } from '../firebase';
-import { Route, Routes, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import LazyLoadingPage from './HomePage';
+import { Button, Grid, Typography } from '@mui/material';
 
 
 
@@ -23,11 +23,17 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div>
-      <h2>Welcome, {userName}</h2>
-      <button onClick={handleSignout}>Sign Out</button>
-<LazyLoadingPage/>
-    </div>
+    <>
+      <Grid container spacing={2} padding={2}>
+        <Grid item xs={10} >
+          <Typography variant="h4" component="h4" >Welcome, {userName}</Typography>
+        </Grid>
+        <Grid item xs={2}>
+          <Button onClick={handleSignout} variant="contained" sx={{ mt: 3, mb: 2 }}>Sign Out</Button>
+        </Grid>
+      </Grid>
+      <LazyLoadingPage />
+    </>
   );
 };
 

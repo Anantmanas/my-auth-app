@@ -1,28 +1,30 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { Button, TextField, Typography, Container, Box, Grid, Checkbox, FormControlLabel } from '@mui/material';
+import React, { useState } from "react";
+import { auth } from "../firebase";
+import { Button, TextField, Typography, Container, Box } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const PasswordReset: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [resetEmailSent, setResetEmailSent] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetError, setResetError] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
-
+  const navigate = useNavigate();
   const handlePasswordReset = async () => {
     try {
       await auth.sendPasswordResetEmail(email);
       setResetEmailSent(true);
-      setResetError('');
+      setResetError("");
     } catch (error) {
-      setResetError('Failed to send password reset email.');
+      setResetError("Failed to send password reset email.");
     }
   };
 
   const handlePasswordUpdate = async () => {
     if (newPassword !== confirmPassword) {
-      setResetError('Passwords do not match.');
+      setResetError("Passwords do not match.");
       return;
     }
 
@@ -30,16 +32,16 @@ const PasswordReset: React.FC = () => {
       const user = auth.currentUser;
       await user?.updatePassword(newPassword);
       setResetSuccess(true);
-      setResetError('');
-      setNewPassword('');
-      setConfirmPassword('');
+      setResetError("");
+      setNewPassword("");
+      setConfirmPassword("");
     } catch (error) {
-      setResetError('Failed to update password.');
+      setResetError("Failed to update password.");
     }
   };
 
   if (resetSuccess) {
-    return <div>Password reset successful!</div>;
+    navigate("/");
   }
 
   return (
@@ -59,26 +61,43 @@ const PasswordReset: React.FC = () => {
         {!resetEmailSent && (
           <div>
             <Typography variant="h3">React Auth</Typography>
-            <Typography component="h1" variant="h5">Password Reset</Typography>
+            <Typography component="h1" variant="h5">
+              Password Reset
+            </Typography>
             <TextField
               type="email"
               value={email}
               label="Email"
-              placeholder='enter your email address'
+              placeholder="enter your email address"
               onChange={(e) => setEmail(e.target.value)}
               variant="outlined"
               margin="normal"
               fullWidth
             />
-            <Button onClick={handlePasswordReset} fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}>Reset Password</Button>
+            <Button
+              onClick={handlePasswordReset}
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Reset Password
+            </Button>
             {resetError && <div>{resetError}</div>}
           </div>
         )}
 
         {resetEmailSent && (
           <div>
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                marginTop: "10px",
+              }}
+            >
+              <ArrowBackIcon />
+            </Link>
             <h2>Set New Password</h2>
             <TextField
               type="password"
@@ -100,14 +119,19 @@ const PasswordReset: React.FC = () => {
               margin="normal"
               fullWidth
             />
-            <Button onClick={handlePasswordUpdate} fullWidth
-                        variant="contained"
-                        sx={{ mt: 3, mb: 2 }}>Update Password</Button>
+            <Button
+              onClick={handlePasswordUpdate}
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Update Password
+            </Button>
             {resetError && <div>{resetError}</div>}
           </div>
         )}
       </Box>
-    </Container >
+    </Container>
   );
 };
 

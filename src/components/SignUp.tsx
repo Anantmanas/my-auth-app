@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, TextField, Typography, Container, Box, Grid, Checkbox, FormControlLabel } from '@mui/material';
+import { Button, TextField, Typography, Container, Box, Grid} from '@mui/material';
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
