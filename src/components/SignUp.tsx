@@ -4,13 +4,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, TextField, Typography, Container, Box, Grid} from '@mui/material';
 
 const Signup: React.FC = () => {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [signupError, setSignupError] = useState('');
 
+  const navigate = useNavigate();
 
   const handleSignup = async () => {
     try {
@@ -24,7 +23,7 @@ const Signup: React.FC = () => {
           displayName: displayName,
         });
       }
-      navigate('/dashboard');
+      navigate('/user/dashboard');
     } catch (error) {
       setSignupError('Failed to create an account.');
     }

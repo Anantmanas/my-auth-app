@@ -1,5 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Avatar, TablePagination } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Avatar,
+} from '@mui/material';
 
 interface Passenger {
   _id: string;
@@ -20,78 +30,68 @@ interface Passenger {
 
 const LazyLoadingPage: React.FC = () => {
   const [data, setData] = useState<Passenger[]>([]);
-  const [airlineData, setAirlineData] = useState<Passenger['airline'][0][]>([]);
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [hasMore, setHasMore] = useState(true);
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const fetchTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+
+      fetchTimeoutRef.current = window.setTimeout(() => {
+        const container = containerRef.current;
+        if (container) {
+          const { scrollTop, clientHeight, scrollHeight } = container;
+          if (scrollTop + clientHeight >= scrollHeight - 10) {
+            loadMoreData();
+          }
+        }
+      }, 200);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=${rowsPerPage}`);
+      const response = await fetch(
+        `https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=20`
+      );
       const json = await response.json();
       const newData: Passenger[] = json.data;
-  
-      const updatedData = newData.map((passenger) => {
-        const airlineData = passenger.airline[0];
-        return {
-          ...passenger,
-          airline: airlineData,
-        };
-      });
-  
-      setData((prevData: Passenger[]) => [...prevData, ...updatedData] as Passenger[]);
 
-      setLoading(false);
-      setAirlineData((prevAirlineData) => [...prevAirlineData, ...updatedData.map((item) => item.airline)]);
+      setData((prevData: Passenger[]) => [...prevData, ...newData]);
+      setPageNumber((prevPageNumber) => prevPageNumber + 1);
+      if (json.page === json.totalPages) {
+        setHasMore(false);
+      }
     } catch (error) {
       console.error(error);
+    } finally {
       setLoading(false);
     }
   };
-  
-  useEffect(() => {
-    const observerOptions: IntersectionObserverInit = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.5,
-    };
 
-    const handleIntersect: IntersectionObserverCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          fetchData();
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(handleIntersect, observerOptions);
-    const currentContainerRef = containerRef.current;
-
-    if (currentContainerRef) {
-      observer.observe(currentContainerRef);
+  const loadMoreData = () => {
+    if (!loading && hasMore) {
+      fetchData();
     }
-
-    return () => {
-      if (currentContainerRef) {
-        observer.unobserve(currentContainerRef);
-      }
-    };
-  }, [pageNumber]);
-
-  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
-    setPageNumber(newPage);
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPageNumber(0);
-  };
 
-  const startIndex = pageNumber * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const displayedData = data.slice(startIndex, endIndex);
+
+  const displayedData = data;
 
   return (
     <div>
@@ -109,30 +109,20 @@ const LazyLoadingPage: React.FC = () => {
               <TableCell>Airline Logo</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody>
+          <TableBody style={{ maxHeight: '400px', overflowY: 'auto' }}>
             {displayedData.map((item, index) => (
-              <TableRow key={item._id}>
-                <TableCell>{startIndex + index + 1}</TableCell>
+              <TableRow key={`${item._id}_${index}`}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>{item.name}</TableCell>
-                <TableCell>{airlineData[index]?.name}</TableCell>
+                <TableCell>{item.airline[0]?.name}</TableCell>
                 <TableCell>
-                  <Avatar alt={airlineData[index]?.name} src={airlineData[index]?.logo} />
+                  <Avatar alt={item.airline[0]?.name} src={item.airline[0]?.logo} />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-
-      <TablePagination
-        component="div"
-        rowsPerPageOptions={[10, 20, 30]}
-        count={data.length}
-        rowsPerPage={rowsPerPage}
-        page={pageNumber}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
 
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>

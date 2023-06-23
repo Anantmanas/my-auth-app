@@ -9,9 +9,8 @@ import { Button, Grid, Typography } from '@mui/material';
 const Dashboard: React.FC = () => {
   const currentUser = auth.currentUser;
   const userName = currentUser?.displayName;
+
   const navigate = useNavigate();
-
-
 
   const handleSignout = async () => {
     try {

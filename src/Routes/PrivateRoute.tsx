@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 
 
@@ -32,15 +32,6 @@ const PrivateRoute: React.FC = () => {
     return <Navigate to="/" />;
   }
 
-  // if (!user) {
-  //   return <Navigate to="/" />;
-  // }
-
-  // return (
-  //   <Route>
-  //     <Outlet />
-  //   </Route>
-  // );
 };
 
 export default PrivateRoute;

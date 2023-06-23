@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth } from "../firebase";
 import { Button, TextField, Typography, Container, Box } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,7 +11,15 @@ const PasswordReset: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState(false);
+  
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (resetSuccess) {
+      navigate("/");
+    }
+  }, [resetSuccess,navigate]);
+
   const handlePasswordReset = async () => {
     try {
       await auth.sendPasswordResetEmail(email);
@@ -30,19 +38,17 @@ const PasswordReset: React.FC = () => {
 
     try {
       const user = auth.currentUser;
+      console.log("User:", user);
       await user?.updatePassword(newPassword);
       setResetSuccess(true);
       setResetError("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
+      console.log("Update Password Error:", error);
       setResetError("Failed to update password.");
     }
   };
-
-  if (resetSuccess) {
-    navigate("/");
-  }
 
   return (
     <Container component="main" maxWidth="sm">
