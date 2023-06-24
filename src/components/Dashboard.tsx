@@ -23,12 +23,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <Grid container spacing={2} padding={2}>
-        <Grid item xs={10} >
-          <Typography variant="h4" component="h4" >Welcome, {userName}</Typography>
+      <Grid container spacing={2} padding={2}  sx={{
+        boxShadow: 3,
+        marginBottom: 5,   
+      }}>
+        <Grid item xs={8} >
+          <Typography variant="h5" component="h5" >Welcome, {userName}</Typography>
+
         </Grid>
-        <Grid item xs={2}>
-          <Button onClick={handleSignout} variant="contained" sx={{ mt: 3, mb: 2 }}>Sign Out</Button>
+        <Grid item xs={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button onClick={handleSignout} variant="contained" >Sign Out</Button>
         </Grid>
       </Grid>
       <LazyLoadingPage />

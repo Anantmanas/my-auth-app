@@ -95,7 +95,7 @@ const LazyLoadingPage: React.FC = () => {
 
   return (
     <div>
-      <Typography variant="h3" align="center" gutterBottom>
+      <Typography variant="h4" align="center" gutterBottom>
         Lazy Loading Page
       </Typography>
 

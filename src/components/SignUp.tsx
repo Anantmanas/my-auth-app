@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, TextField, Typography, Container, Box, Grid} from '@mui/material';
+import { Button, TextField, Typography, Container, Box, Grid, Alert } from '@mui/material';
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [signupError, setSignupError] = useState('');
+  const [successAlert, setSuccessAlert] = useState(false);
 
   const navigate = useNavigate();
 
@@ -17,13 +18,15 @@ const Signup: React.FC = () => {
         email,
         password
       );
-
+      setSuccessAlert(true);
       if (user) {
         await user.updateProfile({
           displayName: displayName,
         });
       }
-      navigate('/user/dashboard');
+      setTimeout(() => {
+        navigate('/user/dashboard');
+      }, 1000);
     } catch (error) {
       setSignupError('Failed to create an account.');
     }
@@ -79,7 +82,9 @@ const Signup: React.FC = () => {
           />
           <Button onClick={handleSignup} fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>Sign Up</Button>
           {signupError && <div>{signupError}</div>}
-
+          {successAlert && (
+            <Alert severity="success">SignUp Successfully</Alert>
+          )}
           <Grid item>
             <Link to="/">
               {"Already have an account? Login here !"}

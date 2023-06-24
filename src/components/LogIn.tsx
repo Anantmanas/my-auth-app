@@ -1,13 +1,14 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { auth } from '../firebase';
-import { Button, TextField, Typography, Container, Box, Grid, Checkbox, FormControlLabel } from '@mui/material';
+import { Button, TextField, Typography, Container, Box, Grid, Checkbox, FormControlLabel, Alert } from '@mui/material';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<any>('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [successAlert, setSuccessAlert] = useState(false);
 
   const navigate = useNavigate();
 
@@ -24,12 +25,17 @@ const Login: React.FC = () => {
 
     try {
       await auth.signInWithEmailAndPassword(email, password);
+      setSuccessAlert(true);
       if (rememberMe) {
         localStorage.setItem('email', email);
       } else {
         localStorage.removeItem('email');
       }
-      navigate('/user/dashboard');
+     
+      setTimeout(() => {
+        navigate('/user/dashboard');
+      }, 1000);
+
     } catch (error: any) {
       setError(error.message);
     }
@@ -54,7 +60,11 @@ const Login: React.FC = () => {
         <Typography variant="h3">React Auth</Typography>
         <Typography component="h1" variant="h5">Log in</Typography>
 
-        {error && <div>{error}</div>}
+        {error && (
+          <Alert severity="error">{error}</Alert>
+        )
+        
+        }
         <form onSubmit={handleLogin}>
           <TextField
             type="email"
@@ -78,7 +88,7 @@ const Login: React.FC = () => {
           />
 
           <FormControlLabel
-            control={<Checkbox value="remember"  checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} color="primary" />}
+            control={<Checkbox value="remember" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} color="primary" />}
             label="Remember me"
           />
           <Button
@@ -89,6 +99,9 @@ const Login: React.FC = () => {
           >
             Log in
           </Button>
+          {successAlert && (
+            <Alert severity="success">Logged In Successfully</Alert>
+          )}
           <Grid container>
             <Grid item xs>
               <Link to="/passwordreset">
@@ -100,7 +113,7 @@ const Login: React.FC = () => {
                 {"Don't have an account? Sign Up"}
               </Link>
             </Grid>
-          </Grid>  
+          </Grid>
         </form>
       </Box>
     </Container>
